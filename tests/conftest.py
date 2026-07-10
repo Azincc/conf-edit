@@ -67,3 +67,48 @@ def safe_writer(file_gateway, file_locks, revision_repository):
 
     return SafeWriter(file_gateway, file_locks, revision_repository)
 
+
+@pytest.fixture
+def json_file(allowed_json):
+    return allowed_json
+
+
+@pytest.fixture
+def sql_file(catalog_service, tmp_path: Path):
+    from conf_edit.domain.models import FileKind
+
+    target = tmp_path / "schema.sql"
+    target.write_text(
+        "CREATE TABLE user_profile (\n"
+        "  id bigint COMMENT '主键',\n"
+        "  name varchar(50) COMMENT '名称'\n"
+        ") COMMENT='用户资料';\n"
+        "INSERT INTO user_profile (id, name) VALUES (1, 'A');\n",
+        encoding="utf-8",
+    )
+    return catalog_service.add_file(target, FileKind.SQL, "基础表")
+
+
+@pytest.fixture
+def editor_service(catalog_service, safe_writer):
+    from conf_edit.services.editor_service import EditorService
+
+    return EditorService(catalog_service, safe_writer)
+
+
+@pytest.fixture
+def history_service(
+    catalog_service,
+    revision_repository,
+    safe_writer,
+    editor_service,
+):
+    from conf_edit.services.history_service import HistoryService
+
+    return HistoryService(
+        catalog_service,
+        revision_repository,
+        safe_writer,
+        editor_service,
+    )
+
