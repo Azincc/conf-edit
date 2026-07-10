@@ -262,3 +262,152 @@ def test_sql_tabs_support_arrow_key_navigation(page, running_app) -> None:
     expect(insert_tab).to_be_focused()
     expect(insert_tab).to_have_attribute("aria-selected", "true")
     expect(page.get_by_role("textbox", name="初始化语句")).to_be_visible()
+
+
+def test_conflict_preserves_unsaved_text_and_offers_safe_actions(
+    page, running_app, json_file
+) -> None:
+    page.goto(running_app.url)
+    page.get_by_role("button", name="用户模型").click()
+    page.get_by_role("button", name="编辑 User").click()
+    editor = page.get_by_role("textbox", name="JSON 对象")
+    local_value = '{"objectName":"User","enabled":false}'
+    _replace_editor_text(editor, local_value)
+    json_file.write_text(
+        '[{"objectName":"User","enabled":"external"}]',
+        encoding="utf-8",
+    )
+
+    page.get_by_role("button", name="校验").click()
+    page.get_by_role("button", name="保存").click()
+
+    expect(
+        page.get_by_text("文件已被其他人或外部程序修改").first
+    ).to_be_visible()
+    assert _editor_value(editor) == local_value
+    page.get_by_role("button", name="复制我的编辑内容").click()
+    expect(page.get_by_text("编辑内容已复制")).to_be_visible()
+    page.get_by_role("button", name="查看差异").click()
+    expect(page.get_by_role("heading", name="我的内容")).to_be_visible()
+    expect(page.get_by_role("heading", name="磁盘内容")).to_be_visible()
+    expect(page.locator(".conflict-disk")).to_contain_text("external")
+
+    messages = []
+
+    def accept_reload(dialog) -> None:
+        messages.append(dialog.message)
+        dialog.accept()
+
+    page.on("dialog", accept_reload)
+    page.get_by_role("button", name="重新加载磁盘版本").click()
+    expect(page.get_by_text("已加载磁盘版本")).to_be_visible()
+    assert _editor_value(editor) == (
+        '{"objectName":"User","enabled":"external"}'
+    )
+    assert messages == ["重新加载会丢弃当前未保存的编辑内容，确定继续吗？"]
+
+
+def test_history_version_can_be_viewed_and_rolled_back(
+    page, running_app
+) -> None:
+    page.goto(running_app.url)
+    page.get_by_role("button", name="用户模型").click()
+    page.get_by_role("button", name="编辑 User").click()
+    editor = page.get_by_role("textbox", name="JSON 对象")
+    _replace_editor_text(editor, '{"objectName":"User","enabled":false}')
+    page.get_by_role("button", name="校验").click()
+    page.get_by_role("button", name="保存").click()
+    expect(page.get_by_text("保存成功")).to_be_visible()
+
+    page.get_by_role("button", name="历史记录").click()
+    expect(page.get_by_role("heading", name="用户模型 · 历史记录")).to_be_visible()
+    page.get_by_role("button", name="查看差异").first.click()
+    expect(page.get_by_text("v1-before", exact=False)).to_be_visible()
+    page.get_by_role("button", name="回滚到此版本").click()
+    page.get_by_role("button", name="确认回滚").click()
+
+    expect(page.get_by_text("回滚成功")).to_be_visible()
+
+
+def test_invalid_json_file_can_be_repaired(
+    page, running_app, json_file
+) -> None:
+    page.goto(running_app.url)
+    json_file.write_text(
+        '[\n  {"objectName":"Broken",}\n]\n',
+        encoding="utf-8",
+    )
+    page.get_by_role("button", name="用户模型").click()
+
+    expect(page.get_by_role("heading", name="文件无法解析")).to_be_visible()
+    expect(page.get_by_text(re.compile("第 2 行"))).to_be_visible()
+    page.get_by_role("button", name="整文件修复").click()
+    editor = page.get_by_role("textbox", name="完整 JSON 文件")
+    assert "Broken" in _editor_value(editor)
+    _replace_editor_text(editor, '[{"objectName":"Fixed"}]')
+
+    save_button = page.get_by_role("button", name="保存修复")
+    expect(save_button).to_be_disabled()
+    page.get_by_role("button", name="校验完整文件").click()
+    expect(page.get_by_text("文件校验通过")).to_be_visible()
+    page.get_by_role("button", name="保存修复").click()
+
+    expect(page.get_by_text("修复成功")).to_be_visible()
+    expect(page.get_by_role("button", name="编辑 Fixed")).to_be_visible()
+    assert json_file.read_text(encoding="utf-8") == (
+        '[{"objectName":"Fixed"}]'
+    )
+
+
+def test_invalid_sql_file_can_be_repaired(page, running_app, sql_file) -> None:
+    page.goto(running_app.url)
+    sql_file.write_text(
+        "CREATE TABLE broken (id int;\n",
+        encoding="utf-8",
+    )
+    page.get_by_role("button", name="基础表").click()
+
+    expect(page.get_by_role("heading", name="文件无法解析")).to_be_visible()
+    page.get_by_role("button", name="整文件修复").click()
+    editor = page.get_by_role("textbox", name="完整 SQL 文件")
+    assert "broken" in _editor_value(editor)
+    _replace_editor_text(
+        editor,
+        "CREATE TABLE fixed_table (\n"
+        "  id bigint COMMENT '主键'\n"
+        ") COMMENT='修复';\n",
+    )
+
+    page.get_by_role("button", name="校验完整文件").click()
+    expect(page.get_by_text("文件校验通过")).to_be_visible()
+    page.get_by_role("button", name="保存修复").click()
+
+    expect(page.get_by_text("修复成功")).to_be_visible()
+    expect(page.get_by_role("button", name="编辑 fixed_table")).to_be_visible()
+    assert "CREATE TABLE fixed_table" in sql_file.read_text(encoding="utf-8")
+
+
+def test_repair_conflict_keeps_full_file_draft(
+    page, running_app, json_file
+) -> None:
+    page.goto(running_app.url)
+    json_file.write_text("[", encoding="utf-8")
+    page.get_by_role("button", name="用户模型").click()
+    page.get_by_role("button", name="整文件修复").click()
+    editor = page.get_by_role("textbox", name="完整 JSON 文件")
+    local_value = '[{"objectName":"LocalFixed"}]'
+    _replace_editor_text(editor, local_value)
+    json_file.write_text(
+        '[{"objectName":"DiskFixed"}]',
+        encoding="utf-8",
+    )
+
+    page.get_by_role("button", name="校验完整文件").click()
+    page.get_by_role("button", name="保存修复").click()
+
+    expect(
+        page.get_by_text("文件已被其他人或外部程序修改").first
+    ).to_be_visible()
+    assert _editor_value(editor) == local_value
+    page.get_by_role("button", name="查看差异").click()
+    expect(page.locator(".conflict-disk")).to_contain_text("DiskFixed")

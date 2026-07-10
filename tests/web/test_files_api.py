@@ -39,6 +39,21 @@ def test_get_objects_and_object(client, services) -> None:
     services.editor.get_object.assert_called_once_with("file-1", "User")
 
 
+def test_get_source_uses_whitelisted_file_id(client, services) -> None:
+    services.editor.get_source.return_value = {
+        "kind": "json",
+        "source": "[]",
+        "revision": "r1",
+        "writable": True,
+    }
+
+    response = client.get("/api/files/file-1/source")
+
+    assert response.status_code == 200
+    assert response.json["source"] == "[]"
+    services.editor.get_source.assert_called_once_with("file-1")
+
+
 def test_validate_passes_body_to_service(
     client, services, mutation_headers
 ) -> None:
@@ -156,4 +171,3 @@ def test_service_conflict_status_is_preserved(client, services) -> None:
 
 
 from conf_edit.domain.errors import DomainError
-

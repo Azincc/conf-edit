@@ -81,6 +81,10 @@ def create_files_blueprint(container) -> Blueprint:
             )
         return container.editor.get_object(file_id, key)
 
+    @blueprint.get("/files/<file_id>/source")
+    def get_source(file_id: str):
+        return container.editor.get_source(file_id)
+
     @blueprint.post("/files/<file_id>/validate")
     def validate(file_id: str):
         return container.editor.validate_draft(file_id, _body())
@@ -132,4 +136,3 @@ def create_files_blueprint(container) -> Blueprint:
         )
 
     return blueprint
-

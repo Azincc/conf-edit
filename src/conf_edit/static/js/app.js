@@ -171,6 +171,9 @@
       state.revision = error.details?.revision || null;
       elements.fileStatus.textContent = `${file.displayName} · 读取失败`;
       elements.objectCount.textContent = error.message;
+      elements.objectSearch.disabled = true;
+      elements.createButton.disabled = true;
+      elements.historyButton.disabled = !state.revision;
       const panel = document.createElement("div");
       panel.className = "diagnostic-panel";
       const title = document.createElement("h2");
@@ -178,6 +181,36 @@
       const copy = document.createElement("p");
       copy.textContent = error.message;
       panel.append(title, copy);
+      const locations = [];
+      if (error.details?.statement) {
+        locations.push(`第 ${error.details.statement} 条语句`);
+      }
+      if (error.details?.line) locations.push(`第 ${error.details.line} 行`);
+      if (error.details?.column) {
+        locations.push(`第 ${error.details.column} 列`);
+      }
+      if (locations.length) {
+        const location = document.createElement("p");
+        location.className = "diagnostic-location";
+        location.textContent = locations.join("，");
+        panel.append(location);
+      }
+      if (error.details?.context) {
+        const context = document.createElement("pre");
+        context.className = "diagnostic-context";
+        context.textContent = error.details.context;
+        panel.append(context);
+      }
+      if (state.revision && error.details?.writable) {
+        const repair = document.createElement("button");
+        repair.type = "button";
+        repair.className = "button button-primary diagnostic-action";
+        repair.textContent = "整文件修复";
+        repair.addEventListener("click", () => {
+          window.confEditEditor?.openRepair?.(error.details, repair);
+        });
+        panel.append(repair);
+      }
       elements.objectList.replaceChildren(panel);
       showToast(error.message, "error");
     }
@@ -202,6 +235,14 @@
     renderObjects();
   });
   elements.refreshFiles.addEventListener("click", loadFiles);
+  elements.historyButton.addEventListener("click", () => {
+    if (!state.activeFile || !state.revision) return;
+    window.confEditHistory?.open?.(
+      state.activeFile.id,
+      state.revision,
+      elements.historyButton
+    );
+  });
   elements.createButton.addEventListener("click", () => {
     window.confEditEditor?.openCreate?.(elements.createButton);
   });

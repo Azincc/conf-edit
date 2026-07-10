@@ -46,6 +46,18 @@ def test_get_sql_object_separates_create_insert_and_comments(
     ]
 
 
+def test_get_source_returns_whitelisted_content_for_repair(
+    editor_service, json_file
+) -> None:
+    result = editor_service.get_source(json_file.id)
+
+    assert result["kind"] == "json"
+    assert result["source"].startswith("[")
+    assert '"objectName":"User"' in result["source"]
+    assert result["revision"]
+    assert result["writable"] is True
+
+
 def test_validate_json_duplicate_uses_current_file(
     editor_service, json_file
 ) -> None:
@@ -201,4 +213,3 @@ def test_inactive_file_is_not_accessible(
 
     assert captured.value.code == "file_not_allowed"
     assert captured.value.status == 404
-

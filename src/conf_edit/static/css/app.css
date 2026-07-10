@@ -12,6 +12,7 @@
   --border: oklch(0.88 0.012 255);
   --selected: oklch(0.92 0.045 255);
   --success-soft: oklch(0.95 0.035 145);
+  --warning-soft: oklch(0.96 0.035 78);
   --danger-soft: oklch(0.95 0.035 5);
   --header: oklch(0.22 0.035 255);
   --radius-sm: 6px;
@@ -462,6 +463,31 @@ textarea:focus-visible,
   color: var(--muted);
 }
 
+.diagnostic-panel .diagnostic-location {
+  margin-top: 8px;
+  color: var(--brand-hover);
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: 0.8125rem;
+}
+
+.diagnostic-context {
+  max-width: min(680px, 100%);
+  margin: 12px 0 0;
+  padding: 10px;
+  overflow-x: auto;
+  color: var(--ink);
+  background: var(--canvas);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: 0.8125rem;
+  text-align: left;
+}
+
+.diagnostic-action {
+  margin-top: 16px;
+}
+
 .empty-glyph {
   display: grid;
   width: 54px;
@@ -699,6 +725,81 @@ textarea:focus-visible,
   font-family: "Cascadia Code", Consolas, monospace;
 }
 
+.conflict-panel {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  color: var(--ink);
+  background: var(--warning-soft);
+  border: 1px solid color-mix(in oklch, var(--warning-soft), black 14%);
+  border-radius: var(--radius-sm);
+}
+
+.conflict-heading h3,
+.conflict-heading p,
+.conflict-comparison h4 {
+  margin: 0;
+}
+
+.conflict-heading h3 {
+  font-size: 0.875rem;
+}
+
+.conflict-heading p {
+  margin-top: 3px;
+  color: oklch(0.38 0.035 78);
+  font-size: 0.8125rem;
+}
+
+.conflict-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.conflict-actions .button {
+  min-height: 34px;
+  padding: 6px 10px;
+  font-size: 0.8125rem;
+}
+
+.conflict-comparison {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.conflict-comparison section {
+  min-width: 0;
+}
+
+.conflict-comparison h4 {
+  margin-bottom: 5px;
+  font-size: 0.8125rem;
+}
+
+.conflict-comparison pre {
+  max-height: 180px;
+  margin: 0;
+  padding: 8px;
+  overflow: auto;
+  color: var(--ink);
+  background: var(--canvas);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.clipboard-fallback {
+  position: fixed;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+}
+
 .note-field {
   display: grid;
   gap: 6px;
@@ -732,6 +833,202 @@ textarea:focus-visible,
 .drawer::backdrop,
 .modal::backdrop {
   background: color-mix(in oklch, var(--header), transparent 48%);
+}
+
+.modal {
+  width: min(860px, calc(100vw - 32px));
+  max-width: none;
+  max-height: min(760px, calc(100vh - 32px));
+  padding: 0;
+  overflow: hidden;
+}
+
+.modal-shell {
+  display: grid;
+  max-height: inherit;
+  grid-template-rows: auto minmax(0, 1fr);
+  background: var(--canvas);
+}
+
+.modal-header,
+.history-detail-heading,
+.history-entry,
+.history-entry-actions,
+.rollback-actions {
+  display: flex;
+  align-items: center;
+}
+
+.modal-header {
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-header h2,
+.history-detail-heading h3 {
+  margin: 0;
+}
+
+.modal-header h2 {
+  font-size: 1.125rem;
+}
+
+.history-body {
+  display: grid;
+  min-height: 0;
+  grid-template-columns: minmax(280px, 0.8fr) minmax(340px, 1.2fr);
+}
+
+.history-content,
+.history-detail {
+  min-height: 0;
+  padding: 14px;
+  overflow-y: auto;
+}
+
+.history-detail {
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+}
+
+.history-detail[hidden] {
+  display: none;
+}
+
+.history-list {
+  display: grid;
+}
+
+.history-entry {
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.history-entry-main {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.history-entry-meta,
+.history-note {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.history-note {
+  margin: 3px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.history-entry-actions {
+  flex: 0 0 auto;
+  gap: 6px;
+}
+
+.history-status {
+  padding: 3px 7px;
+  color: var(--muted);
+  background: var(--sidebar);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+
+.status-applied {
+  color: oklch(0.34 0.09 145);
+  background: var(--success-soft);
+}
+
+.status-failed,
+.status-conflicted {
+  color: var(--brand-hover);
+  background: var(--danger-soft);
+}
+
+.history-diagnostics {
+  margin-top: 12px;
+  color: var(--muted);
+}
+
+.history-diagnostics summary {
+  padding: 8px;
+  cursor: pointer;
+  font-weight: 650;
+}
+
+.history-detail-heading {
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.history-detail-heading h3 {
+  font-size: 0.9375rem;
+}
+
+.diff-view {
+  margin: 0;
+  overflow: auto;
+  color: var(--ink);
+  background: var(--canvas);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  white-space: pre;
+}
+
+.diff-line {
+  display: block;
+  min-height: 1.55em;
+  padding: 0 10px;
+}
+
+.diff-add {
+  color: oklch(0.31 0.08 145);
+  background: var(--success-soft);
+}
+
+.diff-remove {
+  color: var(--brand-hover);
+  background: var(--danger-soft);
+}
+
+.diff-range {
+  color: oklch(0.38 0.12 255);
+  background: var(--selected);
+}
+
+.rollback-confirmation {
+  margin-top: 12px;
+  padding: 12px;
+  background: var(--danger-soft);
+  border: 1px solid color-mix(in oklch, var(--brand), transparent 68%);
+  border-radius: var(--radius-sm);
+}
+
+.rollback-confirmation p {
+  margin: 0 0 10px;
+}
+
+.rollback-actions {
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.rollback-actions .button-danger {
+  margin-right: 0;
+}
+
+.history-empty {
+  min-height: 220px;
 }
 
 .visually-hidden {
@@ -814,6 +1111,21 @@ textarea:focus-visible,
     width: 100vw;
     border-radius: 0;
   }
+
+  .modal {
+    width: 100vw;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .history-body {
+    grid-template-columns: 1fr;
+  }
+
+  .history-detail {
+    border-top: 1px solid var(--border);
+    border-left: 0;
+  }
 }
 
 @media (max-width: 560px) {
@@ -831,6 +1143,10 @@ textarea:focus-visible,
 
   .validation-chip {
     align-self: start;
+  }
+
+  .conflict-comparison {
+    grid-template-columns: 1fr;
   }
 }
 

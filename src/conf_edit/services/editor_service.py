@@ -166,6 +166,17 @@ class EditorService:
             "writable": writable,
         }
 
+    def get_source(self, file_id: str) -> dict[str, Any]:
+        file = self.catalog.get(file_id)
+        snapshot = self.writer.read(file)
+        return {
+            "kind": file.kind.value,
+            "source": snapshot.content,
+            "revision": snapshot.sha256,
+            "writable": snapshot.writable
+            and not self.writer.is_conflicted(file.id),
+        }
+
     def validate_draft(
         self,
         file_id: str,
@@ -440,4 +451,3 @@ class EditorService:
             "request_invalid",
             "请求内容不完整或类型错误",
         )
-
