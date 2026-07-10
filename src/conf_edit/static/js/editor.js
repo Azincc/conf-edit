@@ -107,7 +107,11 @@
         <button id="sql-create-tab" class="editor-tab" type="button" role="tab"
           aria-selected="true" aria-controls="sql-create-panel">建表语句</button>
         <button id="sql-insert-tab" class="editor-tab" type="button" role="tab"
-          aria-selected="false" aria-controls="sql-insert-panel" tabindex="-1">初始化语句</button>
+          aria-label="初始化语句" aria-selected="false"
+          aria-controls="sql-insert-panel" tabindex="-1">
+          <span>初始化语句</span>
+          <span class="editor-tab-count" aria-hidden="true" hidden>1</span>
+        </button>
       </div>
       <section id="sql-create-panel" class="editor-panel" role="tabpanel"
         aria-labelledby="sql-create-tab">
@@ -120,6 +124,18 @@
         <textarea id="sql-insert-source" aria-hidden="true"></textarea>
       </section>
     `;
+  }
+
+  function syncSqlInsertIndicator(value) {
+    const tab = dialog.querySelector("#sql-insert-tab");
+    const indicator = tab?.querySelector(".editor-tab-count");
+    if (!tab || !indicator) return;
+    const hasInitialization = Boolean(value?.trim());
+    indicator.hidden = !hasInitialization;
+    tab.setAttribute(
+      "aria-label",
+      hasInitialization ? "初始化语句，已有初始化语句" : "初始化语句"
+    );
   }
 
   function repairEditorMarkup(isSql) {
@@ -395,7 +411,14 @@
     }
   }
 
-  function createCodeEditor({textareaId, labelId, label, value, mode}) {
+  function createCodeEditor({
+    textareaId,
+    labelId,
+    label,
+    value,
+    mode,
+    onChange = null,
+  }) {
     const textarea = dialog.querySelector(`#${textareaId}`);
     textarea.value = value;
     const editor = window.CodeMirror.fromTextArea(textarea, {
@@ -414,7 +437,10 @@
     input.setAttribute("aria-label", label);
     input.setAttribute("aria-labelledby", labelId);
     editor.setSize("100%", "100%");
-    editor.on("change", invalidateValidation);
+    editor.on("change", () => {
+      invalidateValidation();
+      onChange?.(editor.getValue());
+    });
     return editor;
   }
 
@@ -433,7 +459,9 @@
         label: "初始化语句",
         value: draft.insertSql,
         mode: "text/x-mysql",
+        onChange: syncSqlInsertIndicator,
       });
+      syncSqlInsertIndicator(draft.insertSql);
       activateSqlTab("create", {focus});
     } else {
       editorState.editors.json = createCodeEditor({

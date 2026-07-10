@@ -640,7 +640,10 @@ textarea:focus-visible,
 }
 
 .editor-tab {
+  display: inline-flex;
   min-height: 36px;
+  align-items: center;
+  gap: 6px;
   padding: 7px 10px;
   color: var(--muted);
   background: transparent;
@@ -658,6 +661,31 @@ textarea:focus-visible,
 .editor-tab[aria-selected="true"] {
   color: var(--action);
   border-bottom-color: var(--action);
+}
+
+.editor-tab-count {
+  display: inline-grid;
+  min-width: 18px;
+  height: 18px;
+  place-items: center;
+  padding: 0 5px;
+  color: var(--ink);
+  background: var(--sidebar);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.editor-tab[aria-selected="true"] .editor-tab-count {
+  color: var(--action);
+  background: var(--selected);
+  border-color: color-mix(in oklch, var(--action), transparent 72%);
+}
+
+.editor-tab-count[hidden] {
+  display: none;
 }
 
 .editor-panel {

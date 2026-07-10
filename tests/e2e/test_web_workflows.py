@@ -211,6 +211,42 @@ def test_sql_table_create_and_insert_can_be_edited(
     assert "VALUES (2, 'B')" in source
 
 
+def test_sql_insert_tab_marks_when_initialization_exists(
+    page, running_app
+) -> None:
+    page.goto(running_app.url)
+    page.get_by_role("button", name="基础表").click()
+    page.get_by_role("button", name="编辑 user_profile").click()
+
+    insert_tab = page.locator("#sql-insert-tab")
+    indicator = insert_tab.locator(".editor-tab-count")
+    expect(indicator).to_have_count(1)
+    expect(indicator).to_have_text("1")
+    expect(indicator).to_be_visible()
+    expect(insert_tab).to_have_attribute(
+        "aria-label", "初始化语句，已有初始化语句"
+    )
+
+    insert_tab.click()
+    _replace_editor_text(
+        page.get_by_role("textbox", name="初始化语句"),
+        "   ",
+    )
+
+    expect(indicator).to_be_hidden()
+    expect(insert_tab).to_have_attribute("aria-label", "初始化语句")
+
+    _replace_editor_text(
+        page.get_by_role("textbox", name="初始化语句"),
+        "INSERT INTO user_profile (id, name) VALUES (3, 'C');",
+    )
+    expect(indicator).to_be_visible()
+    expect(indicator).to_have_text("1")
+    expect(insert_tab).to_have_attribute(
+        "aria-label", "初始化语句，已有初始化语句"
+    )
+
+
 def test_sql_table_can_be_created(page, running_app, sql_file) -> None:
     page.goto(running_app.url)
     page.get_by_role("button", name="基础表").click()
