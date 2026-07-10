@@ -1,2 +1,9 @@
 .superpowers/
-
+.venv/
+__pycache__/
+.pytest_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
