@@ -29,6 +29,25 @@ def test_add_rejects_wrong_extension(catalog_service, tmp_path: Path) -> None:
     assert captured.value.code == "wrong_extension"
 
 
+def test_add_rejects_missing_file(catalog_service, tmp_path: Path) -> None:
+    with pytest.raises(DomainError) as captured:
+        catalog_service.add_file(tmp_path / "missing.json", FileKind.JSON)
+
+    assert captured.value.code == "file_not_found"
+
+
+def test_add_rejects_empty_display_name(
+    catalog_service, tmp_path: Path
+) -> None:
+    target = tmp_path / "models.json"
+    target.write_text("[]", encoding="utf-8")
+
+    with pytest.raises(DomainError) as captured:
+        catalog_service.add_file(target, FileKind.JSON, "   ")
+
+    assert captured.value.code == "empty_display_name"
+
+
 def test_invalid_syntax_can_still_be_whitelisted(
     catalog_service, tmp_path: Path
 ) -> None:

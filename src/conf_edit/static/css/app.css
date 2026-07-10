@@ -364,7 +364,14 @@ textarea:focus-visible,
 .button:disabled,
 .icon-button:disabled {
   cursor: not-allowed;
-  opacity: 0.48;
+  opacity: 0.62;
+}
+
+.button-primary:disabled {
+  color: var(--muted);
+  background: var(--sidebar);
+  border-color: var(--border);
+  opacity: 1;
 }
 
 .icon-button {
@@ -1064,6 +1071,8 @@ textarea:focus-visible,
 @media (max-width: 900px) {
   .workspace {
     grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
+    align-content: start;
   }
 
   .file-sidebar {
@@ -1108,13 +1117,19 @@ textarea:focus-visible,
   }
 
   .drawer {
-    width: 100vw;
+    inset: 0;
+    width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    margin: 0;
     border-radius: 0;
   }
 
   .modal {
-    width: 100vw;
-    max-height: 100vh;
+    inset: 0;
+    width: 100%;
+    max-height: 100dvh;
+    margin: 0;
     border-radius: 0;
   }
 
@@ -1125,6 +1140,17 @@ textarea:focus-visible,
   .history-detail {
     border-top: 1px solid var(--border);
     border-left: 0;
+  }
+
+  .button,
+  .search-field input,
+  .editor-tab {
+    min-height: 44px;
+  }
+
+  .icon-button {
+    width: 44px;
+    height: 44px;
   }
 }
 

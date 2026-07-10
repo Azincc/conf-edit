@@ -32,8 +32,17 @@ include-package-data = true
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+conf_edit = [
+  "templates/*.html",
+  "static/css/*.css",
+  "static/js/*.js",
+  "static/vendor/codemirror/**/*.js",
+  "static/vendor/codemirror/**/*.css",
+  "static/vendor/codemirror/**/LICENSE",
+]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra"
 pythonpath = ["src"]
-

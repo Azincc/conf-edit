@@ -130,6 +130,10 @@ def test_dirty_drawer_confirms_and_restores_focus(page, running_app) -> None:
 def test_drawer_is_full_screen_on_narrow_viewport(page, running_app) -> None:
     page.set_viewport_size({"width": 768, "height": 900})
     page.goto(running_app.url)
+    page.evaluate(
+        "document.documentElement.style.overflowY = 'scroll';"
+        "document.documentElement.style.scrollbarGutter = 'stable'"
+    )
     page.get_by_role("button", name="用户模型").click()
     page.get_by_role("button", name="编辑 User").click()
     expect(page.get_by_role("textbox", name="JSON 对象")).to_be_visible()
@@ -141,9 +145,18 @@ def test_drawer_is_full_screen_on_narrow_viewport(page, running_app) -> None:
     )
     bounds = drawer.bounding_box()
     assert bounds is not None
+    client_width = page.evaluate(
+        "document.body.getBoundingClientRect().width"
+    )
     assert bounds["x"] == 0
-    assert bounds["width"] == 768
+    assert bounds["width"] == client_width
     assert page.evaluate("document.documentElement.scrollWidth") <= 768
+    close_bounds = page.get_by_role(
+        "button", name="关闭编辑器"
+    ).bounding_box()
+    save_bounds = page.get_by_role("button", name="保存").bounding_box()
+    assert close_bounds is not None and close_bounds["height"] >= 44
+    assert save_bounds is not None and save_bounds["height"] >= 44
 
 
 def test_json_object_can_be_deleted(page, running_app, json_file) -> None:
