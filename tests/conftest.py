@@ -1,10 +1,18 @@
 """Shared test fixtures."""
 
 from pathlib import Path
+import socket
 
 import pytest
 
 from conf_edit.storage.database import Database
+
+
+@pytest.fixture
+def free_port() -> int:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as handle:
+        handle.bind(("127.0.0.1", 0))
+        return handle.getsockname()[1]
 
 
 @pytest.fixture
@@ -111,4 +119,3 @@ def history_service(
         safe_writer,
         editor_service,
     )
-

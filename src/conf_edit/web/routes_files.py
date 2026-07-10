@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from flask import Blueprint, request
+from flask import Blueprint, g, request
 
 from conf_edit.domain.errors import DomainError
 
@@ -79,6 +79,7 @@ def create_files_blueprint(container) -> Blueprint:
                 "request_invalid",
                 "缺少对象名称",
             )
+        g.object_key = key
         return container.editor.get_object(file_id, key)
 
     @blueprint.get("/files/<file_id>/source")
@@ -104,9 +105,11 @@ def create_files_blueprint(container) -> Blueprint:
     @blueprint.put("/files/<file_id>/object")
     def update(file_id: str):
         payload = _body()
+        original_key = _string(payload, "originalKey")
+        g.object_key = original_key
         return container.editor.update(
             file_id,
-            _string(payload, "originalKey"),
+            original_key,
             _dict(payload, "draft"),
             _string(payload, "revision"),
             request.remote_addr,
@@ -116,9 +119,11 @@ def create_files_blueprint(container) -> Blueprint:
     @blueprint.delete("/files/<file_id>/object")
     def delete(file_id: str):
         payload = _body()
+        key = _string(payload, "key")
+        g.object_key = key
         return container.editor.delete(
             file_id,
-            _string(payload, "key"),
+            key,
             _string(payload, "revision"),
             request.remote_addr,
             _string(payload, "note", optional=True),

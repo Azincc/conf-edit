@@ -47,12 +47,22 @@ class RequestSecurity:
     ) -> None:
         self.port = port
         self.token = token or secrets.token_urlsafe(32)
+        self._uses_default_hosts = allowed_hosts is None
         self.allowed_hosts = {
             host.casefold()
             for host in (
                 allowed_hosts if allowed_hosts is not None else _default_hosts(port)
             )
         }
+
+    def set_port(self, port: int) -> None:
+        if not 1024 <= port <= 65535:
+            raise ValueError("port must be between 1024 and 65535")
+        self.port = port
+        if self._uses_default_hosts:
+            self.allowed_hosts = {
+                host.casefold() for host in _default_hosts(port)
+            }
 
     def validate(self, request: Request) -> None:
         if request.host.casefold() not in self.allowed_hosts:
@@ -78,4 +88,3 @@ class RequestSecurity:
                     "请求防伪令牌无效",
                     status=403,
                 )
-

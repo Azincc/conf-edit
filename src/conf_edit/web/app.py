@@ -53,6 +53,14 @@ def create_app(container: WebContainer) -> Flask:
         )
         if request.path.startswith("/api/"):
             response.headers["Cache-Control"] = "no-store"
+        app.logger.info(
+            "request_id=%s action=%s file_id=%s object_key=%s status=%s",
+            getattr(g, "request_id", "unknown"),
+            request.endpoint or "unmatched",
+            (request.view_args or {}).get("file_id", "-"),
+            getattr(g, "object_key", None) or request.args.get("key") or "-",
+            response.status_code,
+        )
         return response
 
     @app.errorhandler(DomainError)
