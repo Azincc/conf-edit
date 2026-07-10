@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="conf-edit-token" content="{{ csrf_token }}">
+  <title>配置对象管理器</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='vendor/codemirror/lib/codemirror.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='vendor/codemirror/addon/dialog/dialog.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body>
+  <a class="skip-link" href="#object-list">跳到对象列表</a>
+  <header class="app-header">
+    <div class="brand-lockup" aria-label="配置对象管理器">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-name">配置对象管理器</span>
+    </div>
+    <div class="header-actions">
+      <span id="file-status" class="header-status">请选择文件</span>
+      <button id="history-button" class="button button-quiet" type="button" disabled>
+        历史记录
+      </button>
+    </div>
+  </header>
+
+  <div class="workspace">
+    <nav class="file-sidebar" aria-label="可访问文件">
+      <div class="sidebar-heading">
+        <h2>可访问文件</h2>
+        <button id="refresh-files" class="icon-button" type="button" aria-label="刷新文件列表">
+          ↻
+        </button>
+      </div>
+      <div id="file-list" class="file-list" aria-live="polite">
+        <div class="skeleton skeleton-line"></div>
+        <div class="skeleton skeleton-line"></div>
+      </div>
+    </nav>
+
+    <main class="object-workspace">
+      <div class="object-toolbar">
+        <div class="file-heading">
+          <p id="file-kind" class="context-line">配置工作区</p>
+          <h1 id="file-title">请选择文件</h1>
+          <p id="object-count" class="muted-copy">从左侧选择一个 JSON 或 SQL 文件。</p>
+        </div>
+        <div class="toolbar-actions">
+          <label class="search-field">
+            <span class="visually-hidden">搜索对象</span>
+            <span aria-hidden="true">⌕</span>
+            <input id="object-search" type="search" placeholder="搜索对象" disabled>
+          </label>
+          <button id="create-button" class="button button-primary" type="button" disabled>
+            新增对象
+          </button>
+        </div>
+      </div>
+
+      <section id="object-list" class="object-list" aria-live="polite" aria-label="对象列表">
+        <div class="empty-state">
+          <div class="empty-glyph" aria-hidden="true">{ }</div>
+          <h2>选择文件后查看对象</h2>
+          <p>JSON 按 objectName 展示，SQL 按数据库表聚合。</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="editor-drawer" class="drawer" aria-labelledby="editor-title"></dialog>
+  <dialog id="history-dialog" class="modal" aria-labelledby="history-title"></dialog>
+  <div id="toast-region" class="toast-region" role="status" aria-live="polite"></div>
+
+  <script src="{{ url_for('static', filename='vendor/codemirror/lib/codemirror.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='vendor/codemirror/mode/javascript/javascript.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='vendor/codemirror/mode/sql/sql.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='vendor/codemirror/addon/edit/matchbrackets.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/editor.js') }}"></script>
+</body>
+</html>
