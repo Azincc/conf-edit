@@ -64,6 +64,42 @@ def test_parse_groups_create_and_inserts_with_comments() -> None:
     assert table.insert_statements[0].kind is SqlKind.INSERT
 
 
+@pytest.mark.parametrize(
+    "leading_comment",
+    [
+        "-- 用户资料表",
+        "# 用户资料表",
+        "/* 用户资料表 */",
+    ],
+)
+def test_parse_if_not_exists_keeps_leading_mysql_comments(
+    leading_comment: str,
+) -> None:
+    create_sql = (
+        f"{leading_comment}\n"
+        "CREATE TABLE IF NOT EXISTS user_profile (\n"
+        "  id bigint\n"
+        ");"
+    )
+    source = "CREATE TABLE first_table (id int);\n\n" + create_sql
+
+    document = parse_sql_document(source)
+
+    assert [table.name for table in document.tables] == [
+        "first_table",
+        "user_profile",
+    ]
+    table = document.tables[1]
+    assert table.create_statement.kind is SqlKind.CREATE_TABLE
+    assert table.create_statement.raw.strip() == create_sql
+    assert document.unmanaged == ()
+    assert validate_sql_draft(
+        table.create_statement.raw,
+        "",
+        {"first_table"},
+    ).name == "user_profile"
+
+
 def test_unmanaged_valid_statements_are_preserved() -> None:
     source = (
         "SET sql_mode = 'STRICT_ALL_TABLES';\n"

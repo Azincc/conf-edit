@@ -211,6 +211,29 @@ def test_sql_table_create_and_insert_can_be_edited(
     assert "VALUES (2, 'B')" in source
 
 
+def test_sql_if_not_exists_object_displays_leading_comments(
+    page, running_app, sql_file
+) -> None:
+    create_sql = (
+        "-- 用户资料表\n"
+        "/* 由配置工具维护 */\n"
+        "CREATE TABLE IF NOT EXISTS user_profile (\n"
+        "  id bigint COMMENT '主键',\n"
+        "  name varchar(50) COMMENT '名称'\n"
+        ") COMMENT='用户资料';"
+    )
+    sql_file.write_text(create_sql + "\n", encoding="utf-8")
+
+    page.goto(running_app.url)
+    page.get_by_role("button", name="基础表").click()
+
+    expect(page.get_by_role("button", name="编辑 user_profile")).to_be_visible()
+    page.get_by_role("button", name="编辑 user_profile").click()
+
+    create_editor = page.get_by_role("textbox", name="建表语句")
+    assert _editor_value(create_editor) == create_sql
+
+
 def test_sql_insert_tab_marks_when_initialization_exists(
     page, running_app
 ) -> None:
