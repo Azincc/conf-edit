@@ -5,10 +5,9 @@ CREATE TABLE `demo_department` (
   `department_name` VARCHAR(100) NOT NULL COMMENT '部门名称',
   `enabled` TINYINT(1) NOT NULL DEFAULT 1 COMMENT '是否启用：1 是，0 否',
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_demo_department_code` (`department_code`)
+  `update_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`,`department_code`,`department_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='示例部门表';
-
 INSERT INTO `demo_department`
   (`id`, `department_code`, `department_name`, `enabled`, `created_at`)
 VALUES

@@ -164,6 +164,7 @@ def _has_neutral_double_comma(raw: str) -> bool:
     line_comment = False
     block_comment = False
     previous_significant: str | None = None
+    parenthesis_depth = 0
     cursor = 0
     while cursor < len(raw):
         char = raw[cursor]
@@ -198,9 +199,14 @@ def _has_neutral_double_comma(raw: str) -> bool:
         elif char in {"'", '"', "`"}:
             quote = char
         elif not char.isspace():
-            if char == "," and previous_significant == ",":
-                return True
-            previous_significant = char
+            if char == "(":
+                parenthesis_depth += 1
+            elif char == ")":
+                parenthesis_depth = max(0, parenthesis_depth - 1)
+            elif parenthesis_depth == 1:
+                if char == "," and previous_significant == ",":
+                    return True
+                previous_significant = char
         cursor += 1
     return False
 

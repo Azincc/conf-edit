@@ -145,6 +145,23 @@ def test_invalid_mysql_syntax_reports_sql_syntax() -> None:
     assert captured.value.details["statement"] == 1
 
 
+def test_composite_primary_key_is_not_treated_as_empty_table_item() -> None:
+    document = parse_sql_document(
+        "-- ConfEdit MySQL 示例：部门表\n"
+        "CREATE TABLE `demo_department` (\n"
+        "  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '部门主键',\n"
+        "  `department_code` VARCHAR(32) NOT NULL COMMENT '部门编码',\n"
+        "  `department_name` VARCHAR(100) NOT NULL COMMENT '部门名称',\n"
+        "  `enabled` TINYINT(1) NOT NULL DEFAULT 1 COMMENT '是否启用：1 是，0 否',\n"
+        "  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',\n"
+        "  `update_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',\n"
+        "  PRIMARY KEY (`id`,`department_code`,`department_name`)\n"
+        ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='示例部门表';"
+    )
+
+    assert document.tables[0].name == "demo_department"
+
+
 @pytest.mark.parametrize(
     ("insert_sql", "code"),
     [
